@@ -1,0 +1,19 @@
+# THUGSred Shodanify - docker compose up -d   →   http://localhost:8080
+services:
+  shodanify:
+    build: .
+    image: thugsred-shodanify:1.0.0
+    container_name: shodanify
+    ports:
+      - "${SHODANIFY_BIND:-127.0.0.1}:${SHODANIFY_PORT:-8080}:8080"
+    restart: unless-stopped
+    # Nothing in the container needs to be writable or privileged.
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/apache2
+      - /var/lock/apache2
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

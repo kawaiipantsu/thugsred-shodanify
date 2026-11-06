@@ -1,0 +1,537 @@
+{
+  "categories": [
+    {
+      "id": "scope",
+      "title": "Scope & inventory",
+      "lead": "Start with a known hostname, network or organisation. Cross-check ownership before treating a match as your asset.",
+      "icon": 61531,
+      "templates": [
+        {
+          "title": "Hostname footprint",
+          "query": "hostname:\"{hostname}\"",
+          "note": "Find banners associated with matching hostnames.",
+          "tip": "A hostname match is a lead, not verified ownership."
+        },
+        {
+          "title": "Network inventory",
+          "query": "net:{net}",
+          "note": "List indexed services in the chosen CIDR range.",
+          "tip": "Confirm the network belongs in your assessment scope."
+        },
+        {
+          "title": "Organisation label",
+          "query": "org:\"{org}\"",
+          "note": "Match Shodan’s organisation metadata.",
+          "tip": "Hosting-provider labels can cover unrelated tenants."
+        },
+        {
+          "title": "Autonomous system",
+          "query": "asn:{asn}",
+          "note": "Search services attributed to an ASN.",
+          "tip": "An ASN may include customers and shared infrastructure."
+        },
+        {
+          "title": "One port in your network",
+          "query": "net:{net} port:{port}",
+          "note": "Narrow an inventory to a selected port.",
+          "tip": "Inspect the banner to identify the actual protocol.",
+          "global_query": "port:{port}"
+        },
+        {
+          "title": "Hostname with organisation",
+          "query": "hostname:\"{hostname}\" org:\"{org}\"",
+          "note": "Require both a hostname and organisation match.",
+          "tip": "If results disappear, check each filter independently."
+        }
+      ]
+    },
+    {
+      "id": "web",
+      "title": "Web services",
+      "lead": "Explore page metadata and web-service fingerprints without sending a request to the target from this app.",
+      "icon": 61612,
+      "templates": [
+        {
+          "title": "Standard web ports",
+          "query": "hostname:\"{hostname}\" port:80,443",
+          "note": "Look for indexed services on common web ports.",
+          "tip": "Comma-separated values are alternatives within this filter.",
+          "global_query": "port:80,443"
+        },
+        {
+          "title": "Additional web ports",
+          "query": "net:{net} port:8080,8443",
+          "note": "Review services on common alternate web ports.",
+          "tip": "Port numbers alone do not establish the service type.",
+          "global_query": "port:8080,8443"
+        },
+        {
+          "title": "Login page titles",
+          "query": "hostname:\"{hostname}\" http.title:\"login\"",
+          "note": "Find pages whose title mentions login.",
+          "tip": "A login page does not itself establish an exposure.",
+          "global_query": "http.title:\"login\""
+        },
+        {
+          "title": "Successful HTTP responses",
+          "query": "hostname:\"{hostname}\" http.status:200",
+          "note": "Find indexed pages with HTTP status 200.",
+          "tip": "The recorded response may differ from the current page.",
+          "global_query": "http.status:200"
+        },
+        {
+          "title": "HTTP redirects",
+          "query": "hostname:\"{hostname}\" http.status:301,302",
+          "note": "Find recorded redirect responses.",
+          "tip": "Review the destination and whether the redirect is expected.",
+          "global_query": "http.status:301,302"
+        },
+        {
+          "title": "Organisation mentioned in HTML",
+          "query": "hostname:\"{hostname}\" http.html:\"{org}\"",
+          "note": "Match an organisation name within captured HTML.",
+          "tip": "Text matches can include third-party content."
+        }
+      ]
+    },
+    {
+      "id": "tls",
+      "title": "TLS & certificates",
+      "lead": "Compare certificate and protocol observations. These are indexed observations, not a live TLS assessment.",
+      "icon": 61475,
+      "templates": [
+        {
+          "title": "Services with TLS data",
+          "query": "hostname:\"{hostname}\" has_ssl:true",
+          "note": "Find results carrying TLS information.",
+          "tip": "Inspect the certificate and scan timestamp.",
+          "global_query": "has_ssl:true"
+        },
+        {
+          "title": "Expired certificates",
+          "query": "hostname:\"{hostname}\" ssl.cert.expired:true",
+          "note": "Find certificates marked expired in the indexed data.",
+          "tip": "Confirm the endpoint still serves the same certificate.",
+          "global_query": "ssl.cert.expired:true"
+        },
+        {
+          "title": "TLS 1.3 support",
+          "query": "hostname:\"{hostname}\" ssl.version:tlsv1.3",
+          "note": "Find recorded support for TLS 1.3.",
+          "tip": "One supported version does not describe the entire TLS policy.",
+          "global_query": "ssl.version:tlsv1.3"
+        },
+        {
+          "title": "Legacy TLS 1.0 support",
+          "query": "hostname:\"{hostname}\" ssl.version:tlsv1",
+          "note": "Review endpoints observed supporting TLS 1.0.",
+          "tip": "Use an authorised current check before reporting a finding.",
+          "global_query": "ssl.version:tlsv1"
+        },
+        {
+          "title": "Certificate common-name pivot",
+          "query": "ssl.cert.subject.cn:\"{hostname}\"",
+          "note": "Search certificate subject common names.",
+          "tip": "Certificate names can be stale, shared or unrelated to ownership."
+        },
+        {
+          "title": "HTTP/2 negotiation",
+          "query": "hostname:\"{hostname}\" ssl.alpn:h2",
+          "note": "Find TLS services advertising HTTP/2 through ALPN.",
+          "tip": "ALPN describes protocol negotiation, not application security.",
+          "global_query": "ssl.alpn:h2"
+        }
+      ]
+    },
+    {
+      "id": "remote",
+      "title": "Remote access & management",
+      "lead": "Review expected remote-access entry points within a network you manage.",
+      "icon": 61704,
+      "templates": [
+        {
+          "title": "SSH candidates",
+          "query": "net:{net} port:22",
+          "note": "Find services recorded on port 22.",
+          "tip": "Check the service banner before classifying them as SSH.",
+          "global_query": "port:22"
+        },
+        {
+          "title": "SSH outside the usual port",
+          "query": "net:{net} ssh -port:22",
+          "note": "Find SSH-related banners away from port 22.",
+          "tip": "Compare the result with your approved access paths.",
+          "global_query": "ssh -port:22"
+        },
+        {
+          "title": "Remote Desktop candidates",
+          "query": "net:{net} port:3389",
+          "note": "Review services on the usual RDP port.",
+          "tip": "Check whether access is intended to be internet-reachable.",
+          "global_query": "port:3389"
+        },
+        {
+          "title": "VNC candidates",
+          "query": "net:{net} port:5900,5901",
+          "note": "Review common VNC listener ports.",
+          "tip": "A port match does not establish authentication status.",
+          "global_query": "port:5900,5901"
+        },
+        {
+          "title": "Telnet candidates",
+          "query": "net:{net} port:23",
+          "note": "Review services recorded on port 23.",
+          "tip": "Verify the protocol and whether plaintext access is intended.",
+          "global_query": "port:23"
+        },
+        {
+          "title": "Selected management port",
+          "query": "hostname:\"{hostname}\" port:{port}",
+          "note": "Inspect a particular port across matching hostnames.",
+          "tip": "Use the observed product and timestamp to triage results.",
+          "global_query": "port:{port}"
+        }
+      ]
+    },
+    {
+      "id": "software",
+      "title": "Software fingerprints",
+      "lead": "Use detected software as an inventory clue. Fingerprints and reported versions are not proof of a vulnerability.",
+      "icon": 61874,
+      "templates": [
+        {
+          "title": "Selected product in a network",
+          "query": "net:{net} product:\"{product}\"",
+          "note": "Find a detected product within a CIDR range.",
+          "tip": "Compare the banner with your asset inventory.",
+          "global_query": "product:\"{product}\""
+        },
+        {
+          "title": "Selected product by hostname",
+          "query": "hostname:\"{hostname}\" product:\"{product}\"",
+          "note": "Find a product on matching hostnames.",
+          "tip": "Some services do not expose a detectable product.",
+          "global_query": "product:\"{product}\""
+        },
+        {
+          "title": "Selected product by organisation",
+          "query": "org:\"{org}\" product:\"{product}\"",
+          "note": "Combine provider metadata and software identification.",
+          "tip": "Organisation labels can include shared infrastructure.",
+          "global_query": "product:\"{product}\""
+        },
+        {
+          "title": "Selected product by ASN",
+          "query": "asn:{asn} product:\"{product}\"",
+          "note": "Review product matches within an autonomous system.",
+          "tip": "Check ownership before following up a result.",
+          "global_query": "product:\"{product}\""
+        },
+        {
+          "title": "Apache servers",
+          "query": "hostname:\"{hostname}\" product:Apache",
+          "note": "Find banners identified as Apache.",
+          "tip": "A product filter is more specific than a bare banner word.",
+          "global_query": "product:Apache"
+        },
+        {
+          "title": "Detected WordPress component",
+          "query": "hostname:\"{hostname}\" http.component:wordpress",
+          "note": "Find sites with a detected WordPress component.",
+          "tip": "A component fingerprint can be incomplete or outdated.",
+          "global_query": "http.component:wordpress"
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "title": "Evidence & follow-up",
+      "lead": "Use these views to interpret results and make a focused review list.",
+      "icon": 61442,
+      "templates": [
+        {
+          "title": "Results with screenshots",
+          "query": "hostname:\"{hostname}\" has_screenshot:true",
+          "note": "Find results with captured images.",
+          "tip": "Treat captured content as potentially sensitive; account access applies.",
+          "global_query": "has_screenshot:true"
+        },
+        {
+          "title": "IPv6-associated results",
+          "query": "hostname:\"{hostname}\" has_ipv6:true",
+          "note": "Find results carrying IPv6 information.",
+          "tip": "Review IPv6 exposure alongside your IPv4 inventory.",
+          "global_query": "has_ipv6:true"
+        },
+        {
+          "title": "Exclude empty banners",
+          "query": "net:{net} -hash:0",
+          "note": "Keep results with a non-empty main banner.",
+          "tip": "An empty banner does not mean a service is closed.",
+          "global_query": "-hash:0"
+        },
+        {
+          "title": "HSTS header text",
+          "query": "hostname:\"{hostname}\" \"Strict-Transport-Security\"",
+          "note": "Look for the HSTS header in service banner text.",
+          "tip": "A text match alone does not validate the whole HTTPS configuration.",
+          "global_query": "\"Strict-Transport-Security\""
+        },
+        {
+          "title": "DNS port inventory",
+          "query": "net:{net} port:53",
+          "note": "Review indexed services on the DNS port.",
+          "tip": "This does not prove open recursion or amplification.",
+          "global_query": "port:53"
+        },
+        {
+          "title": "Mail port inventory",
+          "query": "net:{net} port:25,465,587",
+          "note": "Review common mail-service ports.",
+          "tip": "Inspect the protocol and transport details in each banner.",
+          "global_query": "port:25,465,587"
+        }
+      ]
+    }
+  ],
+  "operators": [
+    {
+      "operator": "hostname:",
+      "description": "Match associated hostnames.",
+      "example": "hostname:example.com",
+      "note": "A matching hostname is not proof of ownership."
+    },
+    {
+      "operator": "net:",
+      "description": "Limit results to an IP range.",
+      "example": "net:203.0.113.0/24",
+      "note": "Use a CIDR range you intend to review."
+    },
+    {
+      "operator": "org:",
+      "description": "Match organisation metadata.",
+      "example": "org:\"Example Organisation\"",
+      "note": "Quote names containing spaces."
+    },
+    {
+      "operator": "asn:",
+      "description": "Select an autonomous system.",
+      "example": "asn:AS64496",
+      "note": ""
+    },
+    {
+      "operator": "port:",
+      "description": "Select observed service ports.",
+      "example": "port:80,443",
+      "note": "Commas express alternatives."
+    },
+    {
+      "operator": "country:",
+      "description": "Filter geolocation by country code.",
+      "example": "country:DK",
+      "note": "Geolocation is approximate."
+    },
+    {
+      "operator": "city:",
+      "description": "Filter the recorded city.",
+      "example": "city:Copenhagen",
+      "note": "City location can be inaccurate."
+    },
+    {
+      "operator": "product:",
+      "description": "Filter a detected product.",
+      "example": "product:Apache",
+      "note": ""
+    },
+    {
+      "operator": "version:",
+      "description": "Match a reported product version.",
+      "example": "product:OpenSSH version:9.0",
+      "note": "A reported version is not a vulnerability verdict."
+    },
+    {
+      "operator": "os:",
+      "description": "Filter detected operating-system metadata.",
+      "example": "os:Linux",
+      "note": "Not every result has an OS fingerprint."
+    },
+    {
+      "operator": "http.title:",
+      "description": "Search the captured page title.",
+      "example": "http.title:\"login\"",
+      "note": ""
+    },
+    {
+      "operator": "http.html:",
+      "description": "Search captured HTML text.",
+      "example": "http.html:\"Example Organisation\"",
+      "note": ""
+    },
+    {
+      "operator": "http.status:",
+      "description": "Filter recorded HTTP status.",
+      "example": "http.status:200",
+      "note": ""
+    },
+    {
+      "operator": "http.component:",
+      "description": "Match a detected web component.",
+      "example": "http.component:wordpress",
+      "note": ""
+    },
+    {
+      "operator": "has_ssl:",
+      "description": "Select results containing TLS data.",
+      "example": "has_ssl:true",
+      "note": ""
+    },
+    {
+      "operator": "ssl.version:",
+      "description": "Filter observed TLS protocol support.",
+      "example": "ssl.version:tlsv1.3",
+      "note": ""
+    },
+    {
+      "operator": "ssl.cert.expired:",
+      "description": "Filter certificate expiry observations.",
+      "example": "ssl.cert.expired:true",
+      "note": "Check the scan timestamp."
+    },
+    {
+      "operator": "ssl.cert.subject.cn:",
+      "description": "Search certificate subject common names.",
+      "example": "ssl.cert.subject.cn:example.com",
+      "note": ""
+    },
+    {
+      "operator": "ssl.cert.issuer.cn:",
+      "description": "Search certificate issuer common names.",
+      "example": "ssl.cert.issuer.cn:\"Example CA\"",
+      "note": ""
+    },
+    {
+      "operator": "ssl.alpn:",
+      "description": "Match advertised application protocols.",
+      "example": "ssl.alpn:h2",
+      "note": ""
+    },
+    {
+      "operator": "has_screenshot:",
+      "description": "Find results with captured images.",
+      "example": "has_screenshot:true",
+      "note": "Viewing images can require additional account access."
+    },
+    {
+      "operator": "has_ipv6:",
+      "description": "Select results with IPv6 information.",
+      "example": "has_ipv6:true",
+      "note": ""
+    },
+    {
+      "operator": "hash:",
+      "description": "Match the main banner hash.",
+      "example": "-hash:0",
+      "note": "Zero is the empty-banner hash."
+    },
+    {
+      "operator": "-filter:",
+      "description": "Exclude a filter value.",
+      "example": "ssh -port:22",
+      "note": "Place the minus directly before the filter."
+    },
+    {
+      "operator": "filter:a,b",
+      "description": "Match alternative values in a filter.",
+      "example": "port:80,443",
+      "note": "Use service-specific syntax instead of Google-style OR groups."
+    }
+  ],
+  "patterns": [
+    {
+      "title": "Scope first, narrow second",
+      "description": "Pair a network boundary with the service you want to review.",
+      "query": "net:203.0.113.0/24 port:443"
+    },
+    {
+      "title": "Combine metadata",
+      "description": "Require both organisation and geography to match.",
+      "query": "org:\"Example Organisation\" country:DK"
+    },
+    {
+      "title": "Choose alternative ports",
+      "description": "Use a comma list for either of two ports.",
+      "query": "hostname:example.com port:80,443"
+    },
+    {
+      "title": "Exclude the ordinary case",
+      "description": "Review SSH-related results outside the default port.",
+      "query": "net:203.0.113.0/24 ssh -port:22"
+    },
+    {
+      "title": "Separate a fingerprint from a word",
+      "description": "Use product for identification and raw text for banner contents.",
+      "query": "hostname:example.com product:Apache"
+    },
+    {
+      "title": "Require a readable banner",
+      "description": "Remove empty banners from a scoped inventory.",
+      "query": "net:203.0.113.0/24 -hash:0"
+    }
+  ],
+  "guide": [
+    {
+      "title": "Choose a boundary",
+      "text": "Start with an agreed network range or known hostname. Hostname, organisation and certificate matches are discovery clues; none independently proves asset ownership."
+    },
+    {
+      "title": "Read one banner",
+      "text": "A result describes an observed service. Check its IP, port, timestamp and protocol before broadening the query. Missing results do not establish that an asset is absent."
+    },
+    {
+      "title": "Add one filter at a time",
+      "text": "Keep a broad baseline and compare counts as you add filters. Bare words search the main banner; use explicit filters when you mean a specific metadata field."
+    },
+    {
+      "title": "Account for observation time",
+      "text": "Shodan’s standard search uses a recent observation window, not a live check. Recheck your own infrastructure before treating an old banner as a current finding."
+    },
+    {
+      "title": "Open the right view",
+      "text": "The search page, Maps and Images provide different views of Shodan data. Maps and Images require membership. Shodanify only creates links and never requests a scan."
+    },
+    {
+      "title": "Keep access limits visible",
+      "text": "Your Shodan account controls result access. Restricted tag and vuln filters require higher plans. This catalog avoids those filters; exporting data or using an API can consume credits."
+    }
+  ],
+  "references": [
+    {
+      "label": "Shodan query fundamentals",
+      "url": "https://help.shodan.io/the-basics/search-query-fundamentals"
+    },
+    {
+      "label": "Shodan filter reference",
+      "url": "https://www.shodan.io/search/filters"
+    },
+    {
+      "label": "Official search examples",
+      "url": "https://www.shodan.io/search/examples"
+    },
+    {
+      "label": "Banner and HTML hashes",
+      "url": "https://help.shodan.io/mastery/property-hashes"
+    },
+    {
+      "label": "Data timeframes",
+      "url": "https://help.shodan.io/mastery/data_timeline"
+    },
+    {
+      "label": "Website, Maps and Images",
+      "url": "https://help.shodan.io/the-basics/navigating-the-website"
+    },
+    {
+      "label": "Account credits",
+      "url": "https://help.shodan.io/the-basics/credit-types-explained"
+    }
+  ]
+}
